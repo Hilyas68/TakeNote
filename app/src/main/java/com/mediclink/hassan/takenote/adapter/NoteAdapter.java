@@ -41,7 +41,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteHolder> {
     @Override
     public void onBindViewHolder(NoteHolder holder, final int position) {
 
-        try {
+//        try {
 
             String noteText = mCursor.getString(
                     mCursor.getColumnIndex(NoteDBOpenHelper.NOTE_TEXT));
@@ -66,9 +66,9 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteHolder> {
                     mContext.startActivity(intent);
                 }
             });
-        }catch (IndexOutOfBoundsException e){
-            e.getMessage();
-        }
+//        }catch (IndexOutOfBoundsException e){
+//            e.getMessage();
+//        }
     }
 
 
