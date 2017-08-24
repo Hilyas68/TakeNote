@@ -18,8 +18,6 @@ import com.mediclink.hassan.takenote.R;
 import com.mediclink.hassan.takenote.data.NoteDBOpenHelper;
 import com.mediclink.hassan.takenote.data.NoteProvider;
 
-import static android.R.string.no;
-
 public class EditorActivity extends AppCompatActivity {
 
     private String action;
@@ -59,8 +57,7 @@ public class EditorActivity extends AppCompatActivity {
 
             Cursor cursor = getContentResolver().query(uri,
                     NoteDBOpenHelper.ALL_COLUMNS, noteFilter, null, null);
-            cursor.moveToPosition(cursor.getColumnIndex(NoteDBOpenHelper.NOTE_ID));
-            //cursor.moveToFirst();
+            cursor.moveToFirst();
             oldText = cursor.getString(cursor.getColumnIndex(NoteDBOpenHelper.NOTE_TEXT));
             editor.setText(oldText);
             editor.requestFocus();
