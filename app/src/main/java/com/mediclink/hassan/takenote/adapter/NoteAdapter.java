@@ -42,30 +42,30 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteHolder> {
     public void onBindViewHolder(NoteHolder holder, final int position) {
 
 //        try {
-
+            mCursor.moveToPosition(position);
             String noteText = mCursor.getString(
                     mCursor.getColumnIndex(NoteDBOpenHelper.NOTE_TEXT));
 
-//            long date = mCursor.getLong(
-//                    mCursor.getColumnIndex(NoteDBOpenHelper.NOTE_CREATED));
-//
-//            int pos = noteText.indexOf(10);
-//            if (pos != -1) {
-//                noteText = noteText.substring(0, pos) + " ...";
-//            }
+            String date = mCursor.getString(
+                    mCursor.getColumnIndex(NoteDBOpenHelper.NOTE_CREATED));
+
+            int pos = noteText.indexOf(10);
+            if (pos != -1) {
+                noteText = noteText.substring(0, pos) + " ...";
+            }
 
             holder.tvNote.setText(noteText);
-          //  holder.tvDate.setText((int) date);
+            holder.tvDate.setText(date);
 
-            holder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent intent = new Intent(mContext, EditorActivity.class);
-                    Uri uri = Uri.parse(NoteProvider.CONTENT_URI + "/" + position);
-                    intent.putExtra(NoteProvider.CONTENT_ITEM_TYPE, uri);
-                    mContext.startActivity(intent);
-                }
-            });
+//            holder.itemView.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View view) {
+//                    Intent intent = new Intent(mContext, EditorActivity.class);
+//                    Uri uri = Uri.parse(NoteProvider.CONTENT_URI + "/" + position);
+//                    intent.putExtra(NoteProvider.CONTENT_ITEM_TYPE, uri);
+//                    mContext.startActivity(intent);
+//                }
+//            });
 //        }catch (IndexOutOfBoundsException e){
 //            e.getMessage();
 //        }
@@ -78,26 +78,20 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteHolder> {
         if (mCursor == null) {
             return 0;
         }
-        return mCursor.getCount()+1;
+        return mCursor.getCount();
     }
 
     /**
      * When data changes and a re-query occurs, this function swaps the old Cursor
      * with a newly updated Cursor (Cursor c) that is passed in.
      */
-    public Cursor swapCursor(Cursor c) {
-        // check if this cursor is the same as the previous cursor (mCursor)
-        if (mCursor == c) {
-            return null; // bc nothing has changed
-        }
-        Cursor temp = mCursor;
-        this.mCursor = c; // new cursor value assigned
+    public void swapCursor (Cursor c){
+        if(c != null){
+            mCursor = c;
 
-        //check if this is a valid cursor, then update the cursor
-        if (c != null) {
-            this.notifyDataSetChanged();
+            notifyDataSetChanged();
         }
-        return temp;
+
     }
 
 
@@ -110,7 +104,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteHolder> {
 //
 //    }
 
-    public class NoteHolder extends RecyclerView.ViewHolder {
+    public class NoteHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         ImageView docimageIcon;
         TextView tvNote;
@@ -121,6 +115,15 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteHolder> {
             docimageIcon = (ImageView) itemView.findViewById(R.id.imageDocIcon);
             tvNote = (TextView) itemView.findViewById(R.id.tvNote);
             tvDate = (TextView) itemView.findViewById(R.id.tvDate);
+            itemView.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View view) {
+            Intent intent = new Intent(mContext, EditorActivity.class);
+            Uri uri = Uri.parse(NoteProvider.CONTENT_URI + "/" + getAdapterPosition());
+            intent.putExtra(NoteProvider.CONTENT_ITEM_TYPE, uri);
+            mContext.startActivity(intent);
         }
     }
 }
