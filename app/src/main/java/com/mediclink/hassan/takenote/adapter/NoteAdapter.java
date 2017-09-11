@@ -10,11 +10,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.mediclink.hassan.takenote.R;
 import com.mediclink.hassan.takenote.activities.EditorActivity;
-import com.mediclink.hassan.takenote.data.NoteDBOpenHelper;
 import com.mediclink.hassan.takenote.data.NoteProvider;
+
+import static android.R.attr.id;
+import static com.mediclink.hassan.takenote.activities.MainActivity.EDITOR_REQUEST_CODE;
+import static com.mediclink.hassan.takenote.data.NoteContract.NOTES_CONTENT_URI;
+import static com.mediclink.hassan.takenote.data.NoteContract.NotesEntry.NOTE_CREATED;
+import static com.mediclink.hassan.takenote.data.NoteContract.NotesEntry.NOTE_TEXT;
 
 /**
  * Created by hassan on 8/14/2017.
@@ -25,8 +31,20 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteHolder> {
     // Class variables for the Cursor that holds task data and the Context
     private Cursor mCursor;
     private Context mContext;
+    private  RecyclerViewClickListener itemListener;
 
-    public  NoteAdapter(Context context){ this.mContext = context;}
+    public NoteAdapter(Context mContext, RecyclerViewClickListener itemListener) {
+        this.mContext = mContext;
+        this.itemListener = itemListener;
+    }
+
+    public interface RecyclerViewClickListener
+    {
+
+        void recyclerViewListClicked(View v, int position);
+    }
+
+
 
 
     @Override
@@ -44,10 +62,10 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteHolder> {
 //        try {
             mCursor.moveToPosition(position);
             String noteText = mCursor.getString(
-                    mCursor.getColumnIndex(NoteDBOpenHelper.NOTE_TEXT));
+                    mCursor.getColumnIndex(NOTE_TEXT));
 
             String date = mCursor.getString(
-                    mCursor.getColumnIndex(NoteDBOpenHelper.NOTE_CREATED));
+                    mCursor.getColumnIndex(NOTE_CREATED));
 
             int pos = noteText.indexOf(10);
             if (pos != -1) {
@@ -57,18 +75,17 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteHolder> {
             holder.tvNote.setText(noteText);
             holder.tvDate.setText(date);
 
-//            holder.itemView.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View view) {
-//                    Intent intent = new Intent(mContext, EditorActivity.class);
-//                    Uri uri = Uri.parse(NoteProvider.CONTENT_URI + "/" + position);
-//                    intent.putExtra(NoteProvider.CONTENT_ITEM_TYPE, uri);
-//                    mContext.startActivity(intent);
-//                }
-//            });
-//        }catch (IndexOutOfBoundsException e){
-//            e.getMessage();
-//        }
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(mContext, EditorActivity.class);
+                Uri uri = Uri.parse(NOTES_CONTENT_URI + "/" + position);
+                intent.putExtra(NoteProvider.CONTENT_ITEM_TYPE, uri);
+               mContext.startActivity(intent);
+                Toast.makeText(mContext,uri.toString() , Toast.LENGTH_SHORT).show();
+            }
+        });
+
     }
 
 
@@ -95,15 +112,6 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteHolder> {
     }
 
 
-//    @Override
-//    public void onClick(View view) {
-//        Intent intent = new Intent(this, EditorActivity.class);
-//        Uri uri = Uri.parse(NoteProvider.CONTENT_URI + "/" + id);
-//        intent.putExtra(NoteProvider.CONTENT_ITEM_TYPE, uri);
-//        startActivityForResult(intent, MainActivity.EDITOR_REQUEST_CODE);
-//
-//    }
-
     public class NoteHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         ImageView docimageIcon;
@@ -115,15 +123,23 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteHolder> {
             docimageIcon = (ImageView) itemView.findViewById(R.id.imageDocIcon);
             tvNote = (TextView) itemView.findViewById(R.id.tvNote);
             tvDate = (TextView) itemView.findViewById(R.id.tvDate);
-            itemView.setOnClickListener(this);
+           itemView.setOnClickListener(this);
+
+//                @Override
+//                public void onClick(View view) {
+//                    Intent intent = new Intent(mContext, EditorActivity.class);
+//            Uri uri = Uri.parse(NoteProvider.CONTENT_URI + "/" + getAdapterPosition());
+//            intent.putExtra(NoteProvider.CONTENT_ITEM_TYPE, uri);
+//            mContext.startActivity(intent);
+//                }
+
         }
 
-        @Override
+       @Override
         public void onClick(View view) {
-            Intent intent = new Intent(mContext, EditorActivity.class);
-            Uri uri = Uri.parse(NoteProvider.CONTENT_URI + "/" + getAdapterPosition());
-            intent.putExtra(NoteProvider.CONTENT_ITEM_TYPE, uri);
-            mContext.startActivity(intent);
+            itemListener.recyclerViewListClicked(view, getAdapterPosition());
+
         }
+
     }
 }

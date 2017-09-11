@@ -7,7 +7,7 @@
     <item
         android:id="@+id/action_delete"
         android:title="@string/action_delete"
-        android:icon="@drawable/ic_action_delete"
+        android:icon="@mipmap/delete"
         android:orderInCategory="100"
         app:showAsAction="always" />
 

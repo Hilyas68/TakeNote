@@ -11,4 +11,6 @@
     <string name="delete_all_notes">Delete All</string>
     <string name="are_you_sure">Are you sure</string>
     <string name="all_deleted">All Deleted</string>
+    <string name="Got_It">Got It</string>
+    <string name="first_run">FIRSTRUN</string>
 </resources>

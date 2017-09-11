@@ -2,4 +2,9 @@
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="showcase_radius">50dp</dimen>
+    <dimen name="showcase_radius_inner">50dp</dimen>
+    <dimen name="showcase_radius_outer">20dp</dimen>
+
+    <dimen name="showcase_radius_material">50dp</dimen>
 </resources>

@@ -4,9 +4,11 @@ import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -18,19 +20,28 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.github.amlcurran.showcaseview.ShowcaseView;
+import com.github.amlcurran.showcaseview.targets.Target;
+import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.mediclink.hassan.takenote.R;
 import com.mediclink.hassan.takenote.adapter.NoteAdapter;
-import com.mediclink.hassan.takenote.data.NoteDBOpenHelper;
 import com.mediclink.hassan.takenote.data.NoteProvider;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+import static android.R.attr.id;
+import static com.mediclink.hassan.takenote.data.NoteContract.NOTES_CONTENT_URI;
+import static com.mediclink.hassan.takenote.data.NoteContract.NotesEntry.NOTE_TEXT;
+
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, NoteAdapter.RecyclerViewClickListener{
 
     public static final int EDITOR_REQUEST_CODE = 1001;
-    private static final int NOTE_LOADER_ID = 0;
+    public static final int NOTE_LOADER_ID = 0;
 
     private RecyclerView recyclerView;
+    ShowcaseView.Builder showcaseView;
     private NoteAdapter noteAdapter;
 
     @Override
@@ -50,6 +61,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         });
 
+        //ImageView imageView = (ImageView) findViewById(R.id.emptyImageNote);
+        //TextView emptyTextView = (TextView) findViewById(R.id.emptyTv);
         recyclerView = (RecyclerView) findViewById(R.id.rv_note);
 
         //Displaying Grid item using GridLayoutManager
@@ -57,17 +70,58 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setHasFixedSize(true);
 
-        noteAdapter = new NoteAdapter(this);
+        noteAdapter = new NoteAdapter(this, this);
         recyclerView.setAdapter(noteAdapter);
+
+//        if(noteAdapter.getItemCount() == 0){
+//            recyclerView.setVisibility(View.GONE);
+//            // emptyTextView.setVisibility(View.VISIBLE);
+//            imageView.setVisibility(View.VISIBLE);
+//        }else{
+//            recyclerView.setVisibility(View.VISIBLE);
+//            imageView.setVisibility(View.GONE);
+//            // emptyTextView.setVisibility(View.GONE);
+//        }
 
         getSupportLoaderManager().initLoader(NOTE_LOADER_ID, null, this);
 
+        //Make code run once
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        if(!preferences.getBoolean(getString(R.string.first_run), false)){
+            rePositioningShowcaseViewBtn();
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean(getString(R.string.first_run), false);
+            editor.apply();
+        }
     }
+
+    private void rePositioningShowcaseViewBtn() {
+        // Implementation
+        RelativeLayout.LayoutParams lps = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+// This aligns button to the bottom left side of screen
+        lps.addRule(RelativeLayout.CENTER_IN_PARENT);
+        //lps.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+// Set margins to the button, we add 16dp margins here
+        int margin = ((Number) (getResources().getDisplayMetrics().density * 16)).intValue();
+        lps.setMargins(margin, margin, margin, margin);
+
+        Target target = new ViewTarget(R.id.fab, this);
+        showcaseView =  new ShowcaseView.Builder(this, false);
+        showcaseView.setTarget(target)
+                .setContentTitle("Add New Notes")
+                .setContentText("Click on the fab button to add new note.")
+                .setStyle(1)
+                .hideOnTouchOutside()
+                .build()
+                .setButtonPosition(lps);
+
+    }
+
 
     private void insertNote(String noteText) {
         ContentValues contentValues = new ContentValues();
-        contentValues.put(NoteDBOpenHelper.NOTE_TEXT, noteText);
-        Uri noteUri = getContentResolver().insert(NoteProvider.CONTENT_URI, contentValues);
+        contentValues.put(NOTE_TEXT, noteText);
+        Uri noteUri = getContentResolver().insert(NOTES_CONTENT_URI, contentValues);
     }
 
     @Override
@@ -103,7 +157,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         startActivityForResult(intent, EDITOR_REQUEST_CODE);
     }
 
-    private void restartLoader() {
+    public void restartLoader() {
         getSupportLoaderManager().restartLoader(NOTE_LOADER_ID, null, this);
     }
 
@@ -116,7 +170,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                         if (button == DialogInterface.BUTTON_POSITIVE) {
                             //Insert Data management code here
                             getContentResolver().delete(
-                                    NoteProvider.CONTENT_URI, null, null
+                                    NOTES_CONTENT_URI, null, null
                             );
                             restartLoader();
 
@@ -143,7 +197,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new CursorLoader(this, NoteProvider.CONTENT_URI, null, null, null, null);
+        return new CursorLoader(this, NOTES_CONTENT_URI, null, null, null, null);
     }
 
     @Override
@@ -156,4 +210,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         noteAdapter.swapCursor(null);
     }
 
+    @Override
+    public void recyclerViewListClicked(View v, int position) {
+        Intent intent = new Intent(this, EditorActivity.class);
+            Uri uri = Uri.parse(NOTES_CONTENT_URI + "/" + position);
+            intent.putExtra(NoteProvider.CONTENT_ITEM_TYPE, uri);
+        startActivityForResult(intent, EDITOR_REQUEST_CODE);
+        //Toast.makeText(getApplicationContext(), id + " " + position, Toast.LENGTH_SHORT).show();
+    }
 }
